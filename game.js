@@ -59,13 +59,18 @@ class MyGame extends Phaser.Scene {
         this.player = this.physics.add.sprite(300, 800, 'player');
         this.player.setScale(1);
         // this.player.setVelocityX(500);
-        this.physics.add.collider(this.player, this.groundColliders, null, function(player, tile) {
-            if (player.body.velocity.y > 0 && player.body.bottom >= tile.pixelY) {
+
+        this.physics.add.collider(this.player, this.groundColliders, function(player, collider) {
+            // Check if the player is above the collider (with some tolerance, e.g., 10 pixels)
+            if (player.body.bottom <= collider.body.top + 10) {
+                // Collision should occur, player is above the platform
                 return true;
             } else {
-                player.body.blocked.down = false;
+                // Ignore collision, player is below or at the same level as the platform
+                player.body.checkCollision.up = false;
+                return false;
             }
-        }, this);
+        }, null, this);
 
         this.score = 0;
         this.scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
@@ -153,7 +158,16 @@ class MyGame extends Phaser.Scene {
     }
 
     hitEnemy(player, enemy) {
+        // Check if the enemy has already been hit
+        if (enemy.hasBeenHit) {
+            // Enemy has already been hit, so do nothing
+            return;
+        }
+
         if (player.body.bottom < enemy.body.top + 10) {
+            // Mark the enemy as having been hit
+            enemy.hasBeenHit = true;
+
             this.player.setVelocityY(-350); // Initial jump velocity
             enemy.play('enemySquash');
             enemy.setVelocityX(0);
@@ -162,12 +176,13 @@ class MyGame extends Phaser.Scene {
                 this.scoreText.setText('Score: ' + this.score);
                 setTimeout(() => {
                    enemy.disableBody(true, true);
-                }, "1000");
+                }, 1000); // Removed quotes around the timeout duration to ensure it's treated as a number
             }, this);
         } else {
             this.gameOver();
         }
     }
+
 
     enemyTurnAround(enemy, trigger) {
         if(trigger.body.bottom == enemy.body.bottom) {
