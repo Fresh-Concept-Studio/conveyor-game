@@ -18,11 +18,12 @@ class MyGame extends Phaser.Scene {
             frameHeight: 120, // Height of each frame
             endFrame: 4 // Optional: number of the last frame in the spritesheet
         });
+
+        this.load.spritesheet('playerRun', 'assets/playerRun.png', { frameWidth: 120, frameHeight: 120 });
     }
 
     create() {
         this.cameras.main.backgroundColor.setTo(0, 176, 235);
-        this.physics.world.createDebugGraphic();
         const map = this.make.tilemap({ key: 'map', tileWidth:120, tileHeight:120 });
         const tileset = map.addTilesetImage('Assets', 'tiles');
         const landscape = map.createLayer('Landscape', tileset, 0, 0);
