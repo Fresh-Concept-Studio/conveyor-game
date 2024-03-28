@@ -35,8 +35,6 @@ class MyGame extends Phaser.Scene {
         this.enemyColliderLayer = map.getObjectLayer('Enemy Edge Colliders').objects;
         this.groundColliderLayer = map.getObjectLayer('Ground Colliders').objects;
 
-        landscape.setCollisionByProperty({ collides: 'true' });
-
         this.enemyColliderLayer.forEach(object => {
             // Create a sprite or an image for each object in the layer
             this.enemyColliders.create(object.x, object.y, 'invisibleTexture')
@@ -61,7 +59,7 @@ class MyGame extends Phaser.Scene {
         this.player = this.physics.add.sprite(300, 800, 'player');
         this.player.setScale(1);
         // this.player.setVelocityX(500);
-        this.physics.add.collider(this.player, landscape, null, function(player, tile) {
+        this.physics.add.collider(this.player, this.groundColliders, null, function(player, tile) {
             if (player.body.velocity.y > 0 && player.body.bottom >= tile.pixelY) {
                 return true;
             } else {
@@ -97,9 +95,6 @@ class MyGame extends Phaser.Scene {
 
 
 
-
-
-        this.physics.add.collider(this.enemies, landscape);
         this.physics.add.collider(this.player, this.enemies, this.hitEnemy, null, this);
         this.physics.add.collider(this.enemies, this.groundColliders);
         this.physics.add.collider(this.enemies, this.enemyColliders, this.enemyTurnAround, null, this);
