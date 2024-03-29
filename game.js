@@ -4,6 +4,9 @@ class MyGame extends Phaser.Scene {
         this.isGameOver = false; // Add this line
         this.levelWidth = 25080;
         this.scrollSpeed = 0.45;
+        this.playerSpeed = 300;
+        this.enemySpeed = 300;
+        this.isSuperJump = false;
     }
 
     preload() {
@@ -19,7 +22,8 @@ class MyGame extends Phaser.Scene {
             endFrame: 4 // Optional: number of the last frame in the spritesheet
         });
 
-        this.load.spritesheet('playerRun', 'assets/playerRun.png', { frameWidth: 120, frameHeight: 120 });
+        this.load.spritesheet('playerRun', 'assets/playerRun.png', { frameWidth: 86, frameHeight: 120 });
+        this.load.spritesheet('playerJump', 'assets/playerJump.png', { frameWidth: 86, frameHeight: 120 });
     }
 
     create() {
@@ -57,20 +61,21 @@ class MyGame extends Phaser.Scene {
 
 
         this.player = this.physics.add.sprite(300, 800, 'player');
-        this.player.setScale(1);
-        // this.player.setVelocityX(500);
+        this.player.setVelocityX(this.playerSpeed);
+        // this.player.setScale(1);
 
-        this.physics.add.collider(this.player, this.groundColliders, function(player, collider) {
-            // Check if the player is above the collider (with some tolerance, e.g., 10 pixels)
-            if (player.body.bottom <= collider.body.top + 10) {
-                // Collision should occur, player is above the platform
+        this.physics.add.collider(this.player, this.groundColliders, null, function(player, collider) {
+            if (player.body.bottom <= collider.body.top + 15) {
+                // The player is moving downwards and is above the collider - allow collision
                 return true;
             } else {
-                // Ignore collision, player is below or at the same level as the platform
-                player.body.checkCollision.up = false;
+                // debugger;
+                // Disable collision from the sides or when moving up through the collider
                 return false;
             }
-        }, null, this);
+        }, this);
+
+
 
         this.score = 0;
         this.scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
@@ -113,18 +118,41 @@ class MyGame extends Phaser.Scene {
 
         this.anims.create({
             key: 'enemySquash',
-            frames: this.anims.generateFrameNumbers('enemySpriteSheet', { start: 0, end: 4 }), // Adjust frame numbers
+            frames: this.anims.generateFrameNumbers('enemySpriteSheet', { start: 0, end: 3 }), // Adjust frame numbers
             frameRate: 20,
             repeat: 0 // No repeat
+        });
+
+        this.anims.create({
+            key: 'run',
+            frames: this.anims.generateFrameNumbers('playerRun', { start: 0, end: 7 }), // Replace [last frame index] with the actual last frame index
+            frameRate: 13,
+            repeat: -1 // -1 means the animation loops forever
+        });
+
+        this.anims.create({
+            key: 'jump',
+            frames: this.anims.generateFrameNumbers('playerJump', { start: 0, end: 2 }), // Replace [last frame index] with the actual last frame index
+            frameRate: 13,
+            repeat: 0 // -1 means the animation loops forever
         });
     }
 
     update(time, delta) {
         if (!this.isGameOver) {
-            this.player.x += this.scrollSpeed * delta;
+            // this.player.x += this.scrollSpeed * delta;
 
             if (this.player.y > this.physics.world.bounds.height + 120) {
                 this.gameOver();
+            }
+
+            if (this.player.body.blocked.down) {
+                this.player.anims.play('run', true); // Play the running animation
+            } else {
+                this.resetPlayerSpeed();
+                // If in the air, you might want to stop the animation or switch to a jumping/falling animation
+                this.player.anims.stop();
+                this.player.anims.play('jump', true);
             }
 
             const camera = this.cameras.main;
@@ -167,7 +195,7 @@ class MyGame extends Phaser.Scene {
         if (player.body.bottom < enemy.body.top + 10) {
             // Mark the enemy as having been hit
             enemy.hasBeenHit = true;
-
+            this.resetPlayerSpeed();
             this.player.setVelocityY(-350); // Initial jump velocity
             enemy.play('enemySquash');
             enemy.setVelocityX(0);
@@ -181,6 +209,10 @@ class MyGame extends Phaser.Scene {
         } else {
             this.gameOver();
         }
+    }
+
+    resetPlayerSpeed() {
+        this.player.setVelocityX(this.playerSpeed);
     }
 
 
@@ -203,6 +235,8 @@ class MyGame extends Phaser.Scene {
         // Remove the tint and apply rotation
         this.player.clearTint();
         this.player.setAngle(-90); // Rotate 90 degrees counter clockwise
+        this.player.setVelocityX(-40);
+        this.player.anims.stop();
         this.player.y += -40;
         this.player.setTint(0xff0000);
         Phaser.Actions.Call(this.enemies.getChildren(), (enemy) => {
