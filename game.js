@@ -4,7 +4,7 @@ class MyGame extends Phaser.Scene {
         this.isGameOver = false; // Add this line
         this.levelWidth = 25080;
         this.scrollSpeed = 0.45;
-        this.playerSpeed = 300;
+        this.playerSpeed = 350;
         this.enemySpeed = 300;
         this.isSuperJump = false;
     }
