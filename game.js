@@ -1,10 +1,21 @@
+class BootScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'BootScene' });
+    }
+
+    create() {
+        this.scene.start('MyGame');
+    }
+}
+
 class MyGame extends Phaser.Scene {
     constructor() {
         super({ key: 'MyGame' });
         this.isGameOver = false; // Add this line
+        this.powerUp = false; // Add this line
         this.levelWidth = 25080;
         this.scrollSpeed = 0.45;
-        this.playerSpeed = 350;
+        this.playerSpeed = 400;
         this.enemySpeed = 300;
         this.isSuperJump = false;
     }
@@ -28,16 +39,18 @@ class MyGame extends Phaser.Scene {
 
     create() {
         this.cameras.main.backgroundColor.setTo(0, 176, 235);
-        const map = this.make.tilemap({ key: 'map', tileWidth:120, tileHeight:120 });
-        const tileset = map.addTilesetImage('Assets', 'tiles');
-        const landscape = map.createLayer('Landscape', tileset, 0, 0);
-        const landscape_background_2 = map.createLayer('Landscape - Background 2', tileset, 0, 0);
-        const landscape_background_3 = map.createLayer('Landscape - Background 3', tileset, 0, 0);
-        const landscape_background_1 = map.createLayer('Landscape - Background 1', tileset, 0, 0);
+        this.map = this.make.tilemap({ key: 'map', tileWidth:120, tileHeight:120 });
+        const tileset = this.map.addTilesetImage('Assets', 'tiles');
+        const landscape = this.map.createLayer('Landscape', tileset, 0, 0);
+        const landscape_background_2 = this.map.createLayer('Landscape - Background 2', tileset, 0, 0);
+        const landscape_background_3 = this.map.createLayer('Landscape - Background 3', tileset, 0, 0);
+        const landscape_background_1 = this.map.createLayer('Landscape - Background 1', tileset, 0, 0);
+        const powerupsLayer = this.map.createLayer('Powerups', tileset, 0, 0);
+        powerupsLayer.setCollisionByProperty({ isPowerup: 'true' });
         this.enemyColliders = this.physics.add.staticGroup();
         this.groundColliders = this.physics.add.staticGroup();
-        this.enemyColliderLayer = map.getObjectLayer('Enemy Edge Colliders').objects;
-        this.groundColliderLayer = map.getObjectLayer('Ground Colliders').objects;
+        this.enemyColliderLayer = this.map.getObjectLayer('Enemy Edge Colliders').objects;
+        this.groundColliderLayer = this.map.getObjectLayer('Ground Colliders').objects;
 
         this.enemyColliderLayer.forEach(object => {
             // Create a sprite or an image for each object in the layer
@@ -65,7 +78,7 @@ class MyGame extends Phaser.Scene {
         // this.player.setScale(1);
 
         this.physics.add.collider(this.player, this.groundColliders, null, function(player, collider) {
-            if (player.body.bottom <= collider.body.top + 15) {
+            if (player.body.bottom <= collider.body.top + 30) {
                 // The player is moving downwards and is above the collider - allow collision
                 return true;
             } else {
@@ -85,13 +98,13 @@ class MyGame extends Phaser.Scene {
 
         // Enemy Spawn Placeholders
         this.enemySpawnPoints = [];
-        const enemiesLayer = map.getLayer('EnemiesSpawn').data;
+        const enemiesLayer = this.map.getLayer('EnemiesSpawn').data;
         enemiesLayer.forEach((row, y) => {
             row.forEach((tile, x) => {
                 if (tile.index > -1) { // If there is a tile here, it's a spawn point
                     const point = {
-                        x: x * map.tileWidth + map.tileWidth / 2,
-                        y: y * map.tileHeight + map.tileHeight / 2
+                        x: x * this.map.tileWidth + this.map.tileWidth / 2,
+                        y: y * this.map.tileHeight + this.map.tileHeight / 2
                     };
                     this.enemySpawnPoints.push(point);
                 }
@@ -104,7 +117,7 @@ class MyGame extends Phaser.Scene {
         });
 
 
-
+        this.physics.add.collider(this.player, powerupsLayer, this.triggerPowerup, null, this);
         this.physics.add.collider(this.player, this.enemies, this.hitEnemy, null, this);
         this.physics.add.collider(this.enemies, this.groundColliders);
         this.physics.add.collider(this.enemies, this.enemyColliders, this.enemyTurnAround, null, this);
@@ -113,7 +126,9 @@ class MyGame extends Phaser.Scene {
         this.cursors = this.input.keyboard.createCursorKeys();
         this.cursors.space = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
-        this.cameras.main.startFollow(this.player, true, 0.05, 0.05);
+        const offsetX = this.cameras.main.width / 3.5;
+        const offsetY = 0; // Keep Y offset as 0 if you only want to change the horizontal position
+        this.cameras.main.startFollow(this.player, true, 0.05, 0.05, -offsetX, offsetY);
         this.cameras.main.setBounds(0, 0, this.levelWidth, this.game.config.height); // Match the world bounds
 
         this.anims.create({
@@ -140,7 +155,13 @@ class MyGame extends Phaser.Scene {
 
     update(time, delta) {
         if (!this.isGameOver) {
-            // this.player.x += this.scrollSpeed * delta;
+
+            if (!this.gameStarted) {
+                this.physics.pause();
+                return;
+            } else {
+                this.physics.resume();
+            }
 
             if (this.player.y > this.physics.world.bounds.height + 120) {
                 this.gameOver();
@@ -177,11 +198,37 @@ class MyGame extends Phaser.Scene {
         if (Phaser.Input.Keyboard.JustDown(this.cursors.space) && this.player.body.blocked.down) {
             this.player.setVelocityY(-350); // Initial jump velocity
             this.jumpStartTime = time; // Record the time when the jump started
+            document.getElementById("jumpSound").play();
         } else if (this.cursors.space.isDown && !this.player.body.touching.down) {
             // Check if the key is still down and the player is in the air
             if (time - this.jumpStartTime < 500) { // 150 ms to check for a hold, adjust as needed
                 this.player.setVelocityY(-550); // Apply additional jump force
             }
+        }
+    }
+
+    startGame() {
+        this.gameStarted = true;
+        const backgroundMusicSound = document.getElementById("backgroundMusicSound");
+        backgroundMusicSound.volume = 0.25;
+        backgroundMusicSound.play();
+    }
+
+    triggerPowerup(player, tile) {
+        if (tile.properties.isPowerup) {
+            // Call hitEnemy for each enemy in the camera view
+            this.enemies.getChildren().forEach(enemy => {
+                const camera = this.cameras.main;
+                if (enemy.x >= camera.scrollX && enemy.x <= camera.scrollX + camera.width &&
+                    enemy.y >= camera.scrollY && enemy.y <= camera.scrollY + camera.height) {
+                    this.powerUp = true;
+                    this.hitEnemy(this.player, enemy, true); // Assuming hitEnemy can handle null player
+                }
+            });
+            // Optionally, remove the powerup tile after triggering
+            const tileX = tile.x;
+            const tileY = tile.y;
+            this.map.removeTileAt(tileX, tileY, true, true, 'Powerups');
         }
     }
 
@@ -192,8 +239,10 @@ class MyGame extends Phaser.Scene {
             return;
         }
 
-        if (player.body.bottom < enemy.body.top + 10) {
+        if (player.body.bottom < enemy.body.top + 10 || this.powerUp == true) {
+            this.powerUp = false;
             // Mark the enemy as having been hit
+            document.getElementById("squashSound").play();
             enemy.hasBeenHit = true;
             this.resetPlayerSpeed();
             this.player.setVelocityY(-350); // Initial jump velocity
@@ -204,7 +253,7 @@ class MyGame extends Phaser.Scene {
                 this.scoreText.setText('Score: ' + this.score);
                 setTimeout(() => {
                    enemy.disableBody(true, true);
-                }, 1000); // Removed quotes around the timeout duration to ensure it's treated as a number
+                }, 250); // Removed quotes around the timeout duration to ensure it's treated as a number
             }, this);
         } else {
             this.gameOver();
@@ -230,6 +279,12 @@ class MyGame extends Phaser.Scene {
 
     gameOver() {
         console.log('Game Over');
+        var backgroundMusicSound = document.getElementById("backgroundMusicSound");
+        backgroundMusicSound.pause();
+        backgroundMusicSound.currentTime = 0; // Seek to the beginning
+
+        document.getElementById("gameOverSound").volume = 0.4;
+        document.getElementById("gameOverSound").play();
         this.isGameOver = true; // Indicate the game is over
 
         // Remove the tint and apply rotation
@@ -250,25 +305,43 @@ class MyGame extends Phaser.Scene {
 
 }
 
-var config = {
-    type: Phaser.AUTO,
-    scale: {
-        mode: Phaser.Scale.FIT,
-        parent: 'game-wrap',
-        autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: 1920,
-        height: 1080
-    },
-    physics: {
-        default: 'arcade',
-        arcade: {
-            gravity: { y: 2000 },
-            debug: false,
-            deltaTime: 1 / 60,
-            fps: 60,
+document.addEventListener("DOMContentLoaded", () => {
+    const startButton = document.getElementById("start-game");
+    const startScreen = document.getElementById("startScreen");
+    startButton.addEventListener("click", () => {
+        startScreen.style.display = "none"; // Hide the start button
+        if (game && game.scene && game.scene.keys && game.scene.keys.MyGame) {
+            game.scene.keys.MyGame.startGame(); // Start the game through the scene instance
         }
-    },
-    scene: MyGame
-};
+    });
+});
 
-var game = new Phaser.Game(config);
+function startPhaserGame() {
+    var gameConfig = {
+        type: Phaser.AUTO,
+        scale: {
+            mode: Phaser.Scale.FIT,
+            parent: 'game-wrap',
+            autoCenter: Phaser.Scale.CENTER_BOTH,
+            width: 1920,
+            height: 1080
+        },
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { y: 2000 },
+                debug: false,
+                deltaTime: 1 / 60,
+                fps: 60,
+            }
+        },
+        scene: [BootScene, MyGame] // Include BootScene here
+    };
+
+    var game = new Phaser.Game(gameConfig);
+    return game;
+}
+
+// Assuming you have a global game variable
+var game = startPhaserGame();
+

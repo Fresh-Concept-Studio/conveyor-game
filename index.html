@@ -3,9 +3,24 @@
 <head>
     <title>Platformer Game</title>
     <style>body { margin: 0; }</style>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
+    <audio id="backgroundMusicSound" src="assets/backgroundMusic.mp3" preload="auto" loop></audio>
+    <audio id="gameOverSound" src="assets/gameOver.mp3" preload="auto"></audio>
+    <audio id="squashSound" src="assets/squash.mp3" preload="auto"></audio>
+    <audio id="powerUpSound" src="assets/powerUp.mp3" preload="auto"></audio>
+    <audio id="gameOverSound" src="assets/gameOver.mp3" preload="auto"></audio>
+    <audio id="jumpSound" src="assets/jump.mp3" preload="auto"></audio>
+    <div class="absolute inset-0 flex items-center justify-center" id="startScreen">
+        <div class="relative">
+            <img src="assets/startScreen.png" width="600">
+            <a href="#" id="start-game" class="absolute bottom-6 left-1/2" style="margin-left: -150px; width: 300px;">
+                <img src="assets/startButton.svg">
+            </a>
+        </div>
+    </div>
     <div id="game-wrap"></div>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
     <script src="game.js"></script>
