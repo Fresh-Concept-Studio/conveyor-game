@@ -1,4 +1,30 @@
+@font-face {
+    font-family: 'pixeboy';
+    src: url('pixeboy-webfont.woff2') format('woff2'),
+         url('pixeboy-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'arcadepixel';
+    src: url('arcadepixel-regular-webfont.woff2') format('woff2'),
+         url('arcadepixel-regular-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+button {
+    background-color: #299E7F;
+    font-size: 20px;
+    letter-spacing: 1px;
+}
+
+
 html, body {
+    font-family: 'pixeboy';
     height: 100%;
     width: 100%;
     margin: 0;
@@ -6,7 +32,13 @@ html, body {
     display: flex;
     justify-content: center;
     align-items: center;
+    color: white;
 }
+
+p {
+    font-family: 'arcadepixel';
+}
+
 #game-wrap {
     width: 100%;
     height: 100%;

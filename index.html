@@ -7,12 +7,66 @@
     <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
+    <div class="absolute z-10 bg-black px-24 max-w-3xl text-center py-10 rounded-3xl flex flex-col items-center gap-10 hidden" id="gameOverScreen">
+        <h2 class="text-8xl text-red-600">Game Over</h2>
+        <div>
+            <h3 class="text-3xl mb-0">Your Score</h3>
+            <div class="text-9xl scoreNumber">100</div>
+            <p class="text-4xl">Submit your score to the leaderboard to earn prizes!</p>
+        </div>
+        <div class="flex gap-6">
+            <button class="text-3xl bg-teal-600 border-2 border-white py-2 px-10" id="submitScore">Submit Score</button>
+            <a href="/" class="text-3xl border-2 border-white py-2 px-10" id="restart-game">Restart Game</a>
+        </div>
+    </div>
+
+    <div class="absolute z-10 bg-black p-10 px-16 rounded-3xl flex flex-col text-center items-center gap-8 hidden" id="enterScoreScreen">
+        <div>
+            <h3 class="text-3xl mb-0">Your Score</h3>
+            <div class="text-9xl scoreNumber">100</div>
+        </div>
+        <form id="scoreForm" class="flex flex-col gap-6">
+            <input type="hidden" id="scoreInput" name="score" value="100">
+            <div class="flex flex-col gap-2 justify-start text-left">
+                <label for="name" class="text-2xl tracking-wider">Nickname</label>
+                <input type="text" id="name" name="nickname" required class="bg-opacity-10 text-3xl px-5 py-2 bg-white" placeholder="Enter Nickname" autocomplete="off">
+            </div>
+            <div class="flex flex-col gap-2 justify-start text-left mb-4">
+                <label for="name" class="text-2xl tracking-wider">Work Email</label>
+                <input type="email" id="email" name="email" required class="bg-opacity-10 text-3xl px-5 py-2 bg-white" placeholder="Enter Email" autocomplete="off">
+            </div>
+
+            <button type="submit" class="text-3xl bg-teal-600 border-2 border-white py-2 px-10">Submit Score</button>
+          </form>
+    </div>
+
+    <div class="absolute z-10 bg-black px-24 max-w-3xl text-center py-10 rounded-3xl flex flex-col items-center gap-10 hidden" id="leaderboardScreen">
+        <h2 class="text-3xl text-teal-300">Score Successfully Logged!</h2>
+        <h2 class="text-6xl">Current Leaderboard</h2>
+        <table class="text-4xl w-full text-left tracking-wider">
+            <thead class="text-slate-400 underline">
+                <th>Nickname</th>
+                <th>Score</th>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Kyle</td>
+                    <td>100</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="flex gap-6">
+            <a href="/" class="text-3xl  bg-teal-600 border-2 border-white py-2 px-10" id="restart-game">Restart Game</a>
+        </div>
+    </div>
+
     <audio id="backgroundMusicSound" src="assets/backgroundMusic.mp3" preload="auto" loop></audio>
     <audio id="gameOverSound" src="assets/gameOver.mp3" preload="auto"></audio>
     <audio id="squashSound" src="assets/squash.mp3" preload="auto"></audio>
     <audio id="powerUpSound" src="assets/powerUp.mp3" preload="auto"></audio>
     <audio id="gameOverSound" src="assets/gameOver.mp3" preload="auto"></audio>
     <audio id="jumpSound" src="assets/jump.mp3" preload="auto"></audio>
+
     <div class="absolute inset-0 flex items-center justify-center" id="startScreen">
         <div class="relative">
             <img src="assets/startScreen.png" width="600">

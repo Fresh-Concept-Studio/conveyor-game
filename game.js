@@ -278,7 +278,13 @@ class MyGame extends Phaser.Scene {
     }
 
     gameOver() {
-        console.log('Game Over');
+        document.getElementById('scoreInput').value = this.score;
+        const scoreElements = document.querySelectorAll('.scoreNumber');
+
+        scoreElements.forEach(function(element) {
+            element.innerText = this.score;
+        }.bind(this));
+        document.getElementById('gameOverScreen').classList.remove('hidden');
         var backgroundMusicSound = document.getElementById("backgroundMusicSound");
         backgroundMusicSound.pause();
         backgroundMusicSound.currentTime = 0; // Seek to the beginning
@@ -344,4 +350,101 @@ function startPhaserGame() {
 
 // Assuming you have a global game variable
 var game = startPhaserGame();
+
+
+document.getElementById('submitScore').addEventListener('click', function() {
+  document.getElementById('gameOverScreen').classList.add('hidden');
+  document.getElementById('enterScoreScreen').classList.remove('hidden');
+});
+
+// Submit Score
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('scoreForm');
+  const submitButton = form.querySelector('[type="submit"]'); // Get the submit button
+
+  form.addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent the default form submission
+
+    const formData = new FormData(form);
+    const nickname = formData.get('nickname');
+    const score = formData.get('score'); // Make sure you have a field for score in your form
+    const email = formData.get('email');
+
+    // Disable the submit button and change its text
+    submitButton.disabled = true;
+    let dots = 0;
+    const originalText = submitButton.textContent;
+    const dotAnimation = setInterval(() => {
+      dots = (dots + 1) % 4; // Cycle from 0 to 3
+      const dotsString = '.'.repeat(dots);
+      submitButton.textContent = `Submitting${dotsString}`;
+    }, 500); // Change text every 500ms
+
+    postData(nickname, score, email, () => {
+
+    });
+  });
+});
+
+const googleScriptURL = 'https://script.google.com/macros/s/AKfycbzD5NWLWgX1jNidvFJyPrXINuA69N0_8J0_8EtJ5s_8E8iRuDPlvgIeULh5WHdW4wlWyw/exec';
+
+const postData = (nickname, score, email, callback) => {
+  fetch(googleScriptURL, {
+    redirect: "follow",
+    method: 'POST',
+    body: JSON.stringify({nickname: nickname, score: score, email: email}),
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8",
+    },
+  })
+  .then(response => response.json())
+  .then(data => {
+    const leaderboardScreen = document.getElementById('leaderboardScreen');
+    const tableBody = leaderboardScreen.querySelector('tbody');
+    const googleScriptURL = 'https://script.google.com/macros/s/AKfycbzD5NWLWgX1jNidvFJyPrXINuA69N0_8J0_8EtJ5s_8E8iRuDPlvgIeULh5WHdW4wlWyw/exec';
+
+    fetch(googleScriptURL, {
+        redirect: "follow",
+        method: 'GET',
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8",
+        },
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Clear existing rows
+        tableBody.innerHTML = '';
+
+        // Append new rows from fetched data
+        data.forEach(item => {
+          const row = document.createElement('tr');
+          const nicknameCell = document.createElement('td');
+          const scoreCell = document.createElement('td');
+
+          nicknameCell.textContent = item.nickname;
+          scoreCell.textContent = item.score;
+
+          row.appendChild(nicknameCell);
+          row.appendChild(scoreCell);
+
+          tableBody.appendChild(row);
+
+          document.getElementById('enterScoreScreen').classList.add('hidden');
+          leaderboardScreen.classList.remove('hidden');
+        });
+      })
+      .catch(error => console.error('Error fetching leaderboard:', error));
+
+    // Call the callback to reset the button
+    if(callback) callback();
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    // Call the callback to reset the button even in case of error
+    if(callback) callback();
+  });
+};
+
+
+
 
