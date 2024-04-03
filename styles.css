@@ -1,7 +1,7 @@
 @font-face {
     font-family: 'pixeboy';
-    src: url('pixeboy-webfont.woff2') format('woff2'),
-         url('pixeboy-webfont.woff') format('woff');
+    src: url('assets/fonts/pixeboy-webfont.woff2') format('woff2'),
+         url('assets/fonts/pixeboy-webfont.woff') format('woff');
     font-weight: normal;
     font-style: normal;
 
@@ -9,8 +9,8 @@
 
 @font-face {
     font-family: 'arcadepixel';
-    src: url('arcadepixel-regular-webfont.woff2') format('woff2'),
-         url('arcadepixel-regular-webfont.woff') format('woff');
+    src: url('assets/fonts/arcadepixel-regular-webfont.woff2') format('woff2'),
+         url('assets/fonts/arcadepixel-regular-webfont.woff') format('woff');
     font-weight: normal;
     font-style: normal;
 
