@@ -351,16 +351,11 @@ function startPhaserGame() {
 // Assuming you have a global game variable
 var game = startPhaserGame();
 
-
-document.getElementById('submitScore').addEventListener('click', function() {
-  document.getElementById('gameOverScreen').classList.add('hidden');
-  document.getElementById('enterScoreScreen').classList.remove('hidden');
-});
-
 // Submit Score
 document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('scoreForm');
   const submitButton = form.querySelector('[type="submit"]'); // Get the submit button
+
 
   form.addEventListener('submit', function(event) {
     event.preventDefault(); // Prevent the default form submission
@@ -429,7 +424,7 @@ const postData = (nickname, score, email, callback) => {
 
           tableBody.appendChild(row);
 
-          document.getElementById('enterScoreScreen').classList.add('hidden');
+          document.getElementById('gameOverScreen').classList.add('hidden');
           leaderboardScreen.classList.remove('hidden');
         });
       })
